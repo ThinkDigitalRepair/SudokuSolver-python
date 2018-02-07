@@ -1,7 +1,16 @@
-class Cell:
-    possible_values = []
+class PossibleValues(list):
+    def update(self, value):
+        if self.__len__() < 9:
+            self.update(value)
+        else:
+            raise IndexError
+        return True
 
-    def __init__(self, row, column,value=0):
+
+class Cell:
+    possible_values = PossibleValues()
+
+    def __init__(self, row, column, value=0):
         self.row = row
         self.column = column
         self.value = int(value)
@@ -12,11 +21,6 @@ class Cell:
     def __repr__(self):
         return str(self.value)
 
-
-class PossValues(list):
     def update(self, value):
-        if self.__len__() < 9:
-            self.update(value)
-        else:
-            raise IndexError
-        return True
+        self.value = int(value)
+        return
