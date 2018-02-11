@@ -2,4 +2,5 @@ from row import Row
 
 
 class Column(Row):
-    pass
+    def set_type(self):
+        self.type = "column"

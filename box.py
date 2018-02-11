@@ -2,4 +2,5 @@ from row import Row
 
 
 class Box(Row):
-    pass
+    def set_type(self):
+        self.type = "Row"

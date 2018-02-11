@@ -83,5 +83,17 @@ class Board:
                 c.append(self.row[j][i])
             column = Column(row_number=i, cells=c)
             self.column.append(column)
-
         return
+
+    def get_cell(self, column_coord, row_coord):
+        return self.row[row_coord][column_coord]
+
+    def update_possible_values(self, column_coord, row_coord, box_num):
+        """
+        This must be called from a board in order to supply the values of the box and column
+        Column parameter must correspond with the column value of the cell.
+        :param column_coord: the column number the cell belongs to.
+        :param row_coord: the row number the cell belongs to
+        :param box_num: the box number the cell belongs to.
+        """
+        # TODO: WORK ON THIS. Function not created yet

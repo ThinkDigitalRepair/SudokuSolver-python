@@ -1,7 +1,8 @@
 from unittest import TestCase
-from row import Row
+
 from cell import Cell
 from error import *
+from row import Row
 
 
 class TestRow(TestCase):
@@ -17,3 +18,5 @@ class TestRow(TestCase):
     def test_add_value_error(self):
         self.assertRaises(ValueOutOfBoundsError, self.row.add, Cell(1, 2, 3))
 
+    def test_set_cell(self):
+        pass

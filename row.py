@@ -5,11 +5,13 @@ from error import *
 class Row(list):
 
     def __init__(self, row_number, cells):
+
         assert (isinstance(row_number, int))
         assert (isinstance(cells, list))
 
+        self.set_type()
         self.missing_values = []  # list of numbers that have not been found yet
-
+        self.internal_list = []
         self.row_number = row_number
 
         if isinstance(cells[0], Cell):  # if cells are already converted, don't reconvert, just add
@@ -18,10 +20,10 @@ class Row(list):
             for cell in cells:
                 self.internal_list.append(cell.value)
         else:
-            self.internal_list = [int(cell_value) for cell_value in cells]
             for column, value in enumerate(cells):
                 cell = Cell(column=column, row=row_number, value=value)
                 self.add(cell)
+            self.internal_list.append(cell.value)
 
         self.update_missing_values()
 
@@ -35,8 +37,12 @@ class Row(list):
         if not isinstance(cell, Cell):
             raise TypeError("Expecting {0}, got {1}".format(Cell, type(cell)))
 
-        elif cell in self:
-            raise ValueError("{0} is already present at position {1}".format(cell, self.index(cell)))
+        elif cell.value in self.internal_list and cell != 0:
+            a = cell.value in self.internal_list
+            b = cell != 0
+            raise ValueError(
+                "{0} is already present at position {1}, {2}: {3}".format(cell, self.row_number, self.index(cell),
+                                                                          cell.__dict__))
 
         elif self.sum() + cell > 45:
             raise ValueOutOfBoundsError(cell)
@@ -54,13 +60,15 @@ class Row(list):
         self.missing_values = possible_values - set(self.internal_list)
         return self.missing_values
 
-    def update_possible_values(self, cell):
-        # TODO: WORK ON THIS. Function not created yet
-        # possible_values = {1, 2, 3, 4, 5, 6, 7, 8, 9}  # this doesn't need to be changed.
-        # cell.possible_values = possible_values - set(self.internal_list)
-        return self.missing_values
+
 
     def set_cell(self, cell_number, value):
-        self[cell_number].update(value)
+        self[cell_number].set(value)
+
+        # Update possible values in cells
         for cell in self:
-            cell.possible_values
+            if value in cell.possible_values:
+                cell.possible_values.remove(value)
+
+    def set_type(self):
+        self.type = "Row"
