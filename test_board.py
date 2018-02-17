@@ -20,3 +20,7 @@ class TestBoard(TestCase):
 
     def test_cell_equality_fails(self):
         pass
+
+    def test_ordered_by_completeness(self):
+        a = self.board.ordered_by_completeness
+        pass

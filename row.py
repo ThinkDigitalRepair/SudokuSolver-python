@@ -4,30 +4,28 @@ from error import *
 
 class Row(list):
 
-    def __init__(self, row_number, cells):
+    def __init__(self, number, cells):
 
-        assert (isinstance(row_number, int))
+        assert (isinstance(number, int))
         assert (isinstance(cells, list))
 
         self.set_type()
-        self.missing_values = []  # list of numbers that have not been found yet
-        self.internal_list = []
-        self.row_number = row_number
+        self.number = number
 
         if isinstance(cells[0], Cell):  # if cells are already converted, don't reconvert, just add
             self.extend(cells)
-            self.internal_list = []  # Raw values of cells
-            for cell in cells:
-                self.internal_list.append(cell.value)
         else:
             for column, value in enumerate(cells):
-                cell = Cell(column=column, row=row_number, value=value)
+                cell = Cell(column=column, row=number, value=value)
                 self.add(cell)
-            self.internal_list.append(cell.value)
 
-        self.update_missing_values()
-
-        self.solved = False if self.sum() == 45 else True
+    @property
+    def internal_list(self):
+        # TODO: Update this later to not run if no changes are made to optimize processing
+        internal_list = []  # Raw values of cells
+        for cell in self:
+            internal_list.append(cell.value)
+        return internal_list
 
     def add(self, cell):
         # make sure cell is a cell
@@ -41,7 +39,8 @@ class Row(list):
             a = cell.value in self.internal_list
             b = cell != 0
             raise ValueError(
-                "{0} is already present at position {1}, {2}: {3}".format(cell, self.row_number, self.index(cell),
+                "{0} is already present at position {1}, {2}: {3}".format(cell, self.number,
+                                                                          self.internal_list.index(cell.value),
                                                                           cell.__dict__))
 
         elif self.sum() + cell > 45:
@@ -55,12 +54,9 @@ class Row(list):
     def sum(self):
         return sum(self)
 
-    def update_missing_values(self):
-        possible_values = {1, 2, 3, 4, 5, 6, 7, 8, 9}  # this doesn't need to be changed.
-        self.missing_values = possible_values - set(self.internal_list)
-        return self.missing_values
-
-
+    @property
+    def missing_values(self):
+        return {1, 2, 3, 4, 5, 6, 7, 8, 9} - set(self.internal_list)
 
     def set_cell(self, cell_number, value):
         self[cell_number].set(value)
@@ -72,3 +68,20 @@ class Row(list):
 
     def set_type(self):
         self.type = "Row"
+
+    @property
+    def solved(self):
+        return False if self.sum() == 45 else True
+
+    @property
+    def found_values(self):
+        found_values = set(self.internal_list)
+        found_values.remove(0)
+        return found_values
+
+    @property
+    def unsolved_count(self):
+        """
+        :return: cells that are unsolved (whose value is still 0
+        """
+        return self.count(0)

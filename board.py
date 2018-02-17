@@ -26,6 +26,12 @@ class Board:
 
             # set up columns
             self.generate_columns()
+            self.update_possible_values()
+
+    def add_box_values(self):
+        for box in self.box:
+            for cell in box:
+                cell.box = box.number
 
     def generate_boxes(self, box_number):
         box = []
@@ -74,26 +80,65 @@ class Board:
             box.extend(self.row[6][6:9])
             box.extend(self.row[7][6:9])
             box.extend(self.row[8][6:9])
-        return Box(box_number, box)
+
+        b = Box(box_number, box)
+
+        for cell in b:
+            cell.box = box_number
+
+        return b
 
     def generate_columns(self):
         for i in range(len(self.row[0])):  # length of first row.
             c = []
             for j in range(len(self.row[0])):
                 c.append(self.row[j][i])
-            column = Column(row_number=i, cells=c)
+            column = Column(number=i, cells=c)
             self.column.append(column)
         return
 
     def get_cell(self, column_coord, row_coord):
         return self.row[row_coord][column_coord]
 
-    def update_possible_values(self, column_coord, row_coord, box_num):
+    @property
+    def ordered_by_completeness(self):
         """
-        This must be called from a board in order to supply the values of the box and column
-        Column parameter must correspond with the column value of the cell.
-        :param column_coord: the column number the cell belongs to.
-        :param row_coord: the row number the cell belongs to
-        :param box_num: the box number the cell belongs to.
+
+        :return: row, column, box with the least unsolved values.
         """
-        # TODO: WORK ON THIS. Function not created yet
+        row_order = {}
+        for row in self.row:
+            row_order[str(row.number)] = row.unsolved_count
+
+        row_min = min(row_order, key=row_order.get)
+
+        column_order = {}
+        for column in self.column:
+            column_order[str(column.number)] = column.unsolved_count
+
+        column_min = min(column_order, key=column_order.get)
+
+        box_order = {}
+        for box in self.box:
+            box_order[str(box.number)] = box.unsolved_count
+
+        box_min = min(box_order, key=box_order.get)
+        return {"row_min": row_min, "column_min": column_min, "box_min": box_min}
+
+    def update_possible_values(self):
+
+        """ """
+        # TODO: Check to see why so many values are being added to possible_values for each cell
+
+        for row in self.row:
+            for cell in row:
+                if cell == 0:
+                    print("{0} = {1}-{2}-{3}\n {4}\n".format(cell.__dict__, set(self.row[cell.row].missing_values),
+                                                             set(self.column[cell.column].found_values),
+                                                             set(self.box[cell.box].found_values),
+                                                             set(self.row[cell.row].missing_values) - set(
+                                                                 self.column[cell.column].found_values) - set(
+                                                                 self.box[cell.box].found_values)))
+                    cell.possible_values.append(
+                        set(self.row[cell.row].missing_values) - set(self.column[cell.column].found_values) - set(
+                            self.box[cell.box].found_values))
