@@ -28,3 +28,8 @@ class TestBoard(TestCase):
         self.board.solve()
         self.board.__print__()
         pass
+
+    def test_percent_complete(self):
+        board_completeness = self.board.percent_complete
+        print("board completeness: " + str(board_completeness) + '%')
+        self.board.__print__()

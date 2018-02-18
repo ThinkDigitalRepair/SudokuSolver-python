@@ -1,30 +1,29 @@
-class PossibleValues(list):
+from color import Color
+
+
+class PossibleValues(set):
     is_already_set = False
 
     def __init__(self):
         super().__init__()
 
-    def append(self, value):
+    def add(self, value):
 
         """
 
         :param value: the value to add to the list
         :return: success if the value is added
         """
-        if self.is_already_set:
-            pass
         if hasattr(value, '__iter__'):  # If it's a list, then
             for item in value:  # for every item in the list
-                if item not in self:  # If we already have this, don't add it again.
                     if self.__len__() < 9:
-                        super().append(item)
+                        super().add(item)
                     else:
                         raise IndexError("This is putting us over 9!")
-        elif self.__len__() < 9 and value not in self:
-            super().append(value)
+        elif self.__len__() < 9:
+            super().add(value)
         else:
             raise IndexError("This is putting us over 9!")
-        self.is_already_set = True
         return True
 
 
@@ -52,7 +51,10 @@ class Cell:
         return self.value + other
 
     def __repr__(self):
-        return str(self.value)
+        if self.value == 0:
+            return Color.RED + str(self.value) + Color.END
+        else:
+            return str(self.value)
 
     def set(self, value):
         self.value = int(value)

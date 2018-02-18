@@ -1,4 +1,5 @@
 import logging
+from functools import reduce
 
 from box import Box
 from column import Column
@@ -105,6 +106,10 @@ class Board:
     def get_cell(self, column_coord, row_coord):
         return self.row[row_coord][column_coord]
 
+    def naked_subset(self):
+        # TODO: Create Function
+        pass
+
     @property
     def ordered_by_completeness(self):
         """
@@ -133,7 +138,12 @@ class Board:
         box_min = min(box_order, key=box_order.get)
         return {"row_min": row_min, "column_min": column_min, "box_min": box_min}
 
-    def set_all_setable_cells(self):
+    @property
+    def percent_complete(self):
+        result = reduce((lambda x, y: x + y), [row.percent_complete for row in self.row]) / 9
+        return round(result, 2) * 100
+
+    def set_sole_candidates(self):
         set_cells = []
         for row in self.row:
             for cell in row:
@@ -148,7 +158,7 @@ class Board:
 
         while len(result) > 0:
             self.update_possible_values()
-            result = self.set_all_setable_cells()
+            result = self.set_sole_candidates()
             pass
 
     def update_possible_values(self):
@@ -163,7 +173,7 @@ class Board:
                         set(self.row[cell.row].missing_values) - set(self.column[cell.column].found_values) - set(
                             self.box[cell.box].found_values))
 
-    def __print__(self):
+    def __print__(self, colorized=True):
         for row in self.row:
             print(row)
 # TODO: scrape http://www.dailysudoku.com/

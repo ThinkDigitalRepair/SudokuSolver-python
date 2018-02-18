@@ -58,6 +58,11 @@ class Row(list):
     def missing_values(self):
         return {1, 2, 3, 4, 5, 6, 7, 8, 9} - set(self.internal_list)
 
+    @property
+    def percent_complete(self):
+        count_ = (9 - self.unsolved_count) / 9
+        return round(count_, 2)
+
     def set_cell(self, cell_number, value):
         self[cell_number].set(value)
 
