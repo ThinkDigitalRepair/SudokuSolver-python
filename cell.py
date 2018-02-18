@@ -1,6 +1,9 @@
 class PossibleValues(list):
     is_already_set = False
 
+    def __init__(self):
+        super().__init__()
+
     def append(self, value):
 
         """
@@ -26,13 +29,13 @@ class PossibleValues(list):
 
 
 class Cell:
-    possible_values = PossibleValues()
 
     def __init__(self, row, column, value=0, box=0):
         self.row = row
         self.column = column
         self.value = int(value)
         self.box = box
+        self.possible_values = PossibleValues()
 
     def __eq__(self, other):
         if isinstance(other, int):

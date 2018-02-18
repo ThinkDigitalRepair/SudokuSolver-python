@@ -1,21 +1,27 @@
+import logging
+
 from box import Box
 from column import Column
 from row import Row
 
 
 class Board:
+
     def __init__(self, set_file):
+        logging.getLogger().setLevel(logging.INFO)
+
         self.box = []
         self.column = []
         self.row = []
+        self.url = ""
+
         with open(set_file, 'r') as file:
             content = file.readlines()
-
-            if len(content) != 9:
-                raise ValueError("Invalid Set file! File must have 9 lines")
-
             content = [line.strip() for line in content]
             content = [line.split(',') for line in content]
+
+            if content[0][0].startswith("http"):
+                self.url = content.pop(0)[0]
 
             for row_number, row_contents in enumerate(content):
                 self.row.append(Row(row_number, row_contents))
@@ -26,7 +32,6 @@ class Board:
 
             # set up columns
             self.generate_columns()
-            self.update_possible_values()
 
     def add_box_values(self):
         for box in self.box:
@@ -108,37 +113,57 @@ class Board:
         """
         row_order = {}
         for row in self.row:
-            row_order[str(row.number)] = row.unsolved_count
+            if row.unsolved_count != 0:
+                row_order[str(row.number)] = row.unsolved_count
 
         row_min = min(row_order, key=row_order.get)
 
         column_order = {}
         for column in self.column:
-            column_order[str(column.number)] = column.unsolved_count
+            if column.unsolved_count != 0:
+                column_order[str(column.number)] = column.unsolved_count
 
         column_min = min(column_order, key=column_order.get)
 
         box_order = {}
         for box in self.box:
-            box_order[str(box.number)] = box.unsolved_count
+            if box.unsolved_count != 0:
+                box_order[str(box.number)] = box.unsolved_count
 
         box_min = min(box_order, key=box_order.get)
         return {"row_min": row_min, "column_min": column_min, "box_min": box_min}
 
+    def set_all_setable_cells(self):
+        set_cells = []
+        for row in self.row:
+            for cell in row:
+                if len(cell.possible_values) == 1:
+                    cell.set(cell.possible_values.pop())
+                    set_cells.append(cell)
+                    logging.info(msg=cell.__dict__)
+        return set_cells
+
+    def solve(self):
+        result = ["filler", "text"]
+
+        while len(result) > 0:
+            self.update_possible_values()
+            result = self.set_all_setable_cells()
+            pass
+
     def update_possible_values(self):
-
-        """ """
-        # TODO: Check to see why so many values are being added to possible_values for each cell
-
+        """
+        The basic solving of the entire board. This updates the possible values list for each cell.
+        """
+        updated_cells = []
         for row in self.row:
             for cell in row:
                 if cell == 0:
-                    print("{0} = {1}-{2}-{3}\n {4}\n".format(cell.__dict__, set(self.row[cell.row].missing_values),
-                                                             set(self.column[cell.column].found_values),
-                                                             set(self.box[cell.box].found_values),
-                                                             set(self.row[cell.row].missing_values) - set(
-                                                                 self.column[cell.column].found_values) - set(
-                                                                 self.box[cell.box].found_values)))
-                    cell.possible_values.append(
+                    cell.possible_values = (
                         set(self.row[cell.row].missing_values) - set(self.column[cell.column].found_values) - set(
                             self.box[cell.box].found_values))
+
+    def __print__(self):
+        for row in self.row:
+            print(row)
+# TODO: scrape http://www.dailysudoku.com/
