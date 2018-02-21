@@ -1,40 +1,29 @@
+import logging
+
 from color import Color
 
 
-class PossibleValues(set):
-    is_already_set = False
-
-    def __init__(self):
-        super().__init__()
-
-    def add(self, value):
-
-        """
-
-        :param value: the value to add to the list
-        :return: success if the value is added
-        """
-        if hasattr(value, '__iter__'):  # If it's a list, then
-            for item in value:  # for every item in the list
-                    if self.__len__() < 9:
-                        super().add(item)
-                    else:
-                        raise IndexError("This is putting us over 9!")
-        elif self.__len__() < 9:
-            super().add(value)
-        else:
-            raise IndexError("This is putting us over 9!")
-        return True
-
-
 class Cell:
+    logging.getLogger().setLevel(logging.INFO)
 
-    def __init__(self, row, column, value=0, box=0):
+    def __init__(self, row, column, value=0, box=0, fixed=False, set_by_function=""):
+        """
+
+        :param set_by_function: Optional. The function that determined the cell's value. Mainly used for diagnosis.
+        :param row: the row the cell is a part of
+        :param column: the column the cell is part of
+        :param value: the value of the cell
+        :param box: the box the cell is part of
+        :param fixed: whether or not this is a fixed cell.
+        """
+        self.set_by_function = set_by_function
         self.row = row
         self.column = column
         self.value = int(value)
         self.box = box
-        self.possible_values = PossibleValues()
+        self.possible_values = {}
+        self.fixed = fixed
+        self.colorized = None
 
     def __eq__(self, other):
         if isinstance(other, int):
@@ -51,13 +40,44 @@ class Cell:
         return self.value + other
 
     def __repr__(self):
-        if self.value == 0:
-            return Color.RED + str(self.value) + Color.END
-        else:
+        if self.colorized:  # Colorized options go here
+            if self.value == 0:
+                return Color.RED + str(self.value) + Color.END
+            else:  # these are all values set by the program
+                return Color.BLUE + str(self.value) + Color.END
+        elif self.fixed or not self.colorized:
             return str(self.value)
 
-    def set(self, value):
-        self.value = int(value)
+    def set(self, value, set_by_function):
+        """
+
+        :param value: the value to set
+        :param set_by_function: Optional: The function that determined the cell's value.
+         Mainly used for diagnosis.
+
+         WARNING: ONLY USE THIS WITH Row().set_cell() because of checks needing to be run!
+        """
+        if not self.fixed:
+            if self.value != 0:
+                logging.warning(
+                    "{4}\nCell was already set to {0} by {1}. \nValue is now being set to {2} by {3}".format(self.value,
+                                                                                                             self.set_by_function,
+                                                                                                             value,
+                                                                                                             set_by_function,
+                                                                                                             self.__dict__))
+                raise ValueError(
+                    "{4}\nCell was already set to {0} by {1}. \nValue is now being set to {2} by {3}".format(self.value,
+                                                                                                             self.set_by_function,
+                                                                                                             value,
+                                                                                                             set_by_function,
+                                                                                                             self.__dict__))
+            else:
+                self.value = int(value)
+                self.set_by_function = set_by_function
+                self.possible_values.clear()
+        else:
+            logging.CRITICAL("Attempting to set a fixed cell!")
+            raise ValueError("Attempting to set a fixed cell!")
 
     def to_int(self):
         return self.value

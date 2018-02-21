@@ -7,9 +7,9 @@ from row import Row
 
 
 class Board:
+    logging.getLogger().setLevel(logging.INFO)
 
     def __init__(self, set_file):
-        logging.getLogger().setLevel(logging.INFO)
 
         self.box = []
         self.column = []
@@ -139,27 +139,62 @@ class Board:
         return {"row_min": row_min, "column_min": column_min, "box_min": box_min}
 
     @property
-    def percent_complete(self):
+    def percent_complete(self) -> float:
+        """
+
+        :return: Percentage of completed cells for the board
+        """
         result = reduce((lambda x, y: x + y), [row.percent_complete for row in self.row]) / 9
-        return round(result, 2) * 100
+        return round(result * 100, 2)
+
+    def set_hidden_singles(self):
+        set_cells = []
+        set_cells.clear()
+        for row in self.row:
+            singles = row.set_hidden_singles()
+            set_cells.extend(singles)
+        for column in self.column:
+            hidden_singles = column.set_hidden_singles()
+            set_cells.extend(hidden_singles)
+        for box in self.box:
+            set_hidden_singles = box.set_hidden_singles()
+            set_cells.extend(set_hidden_singles)
+        return set_cells
 
     def set_sole_candidates(self):
+        """
+        Finds and sets cells that only have one possible value
+        :return: List of cells that were set
+        """
         set_cells = []
         for row in self.row:
             for cell in row:
-                if len(cell.possible_values) == 1:
-                    cell.set(cell.possible_values.pop())
-                    set_cells.append(cell)
+                if cell.value == 0 and len(cell.possible_values) == 1:
+                    # remove that value, emptying the list, and set it
+                    value = cell.possible_values.pop()
+                    row.set_cell(cell.column, value, "Board.set_sole_candidates()")
+                    self.column[cell.column].remove_from_pv_lists(value)
+                    self.box[cell.box].remove_from_pv_lists(value)
+                    set_cells.append(cell)  # add it to the list of processed cells
                     logging.info(msg=cell.__dict__)
         return set_cells
 
     def solve(self):
-        result = ["filler", "text"]
-
-        while len(result) > 0:
+        sole_candidates = ["filler"]
+        sole_candidate_iterations = 0
+        hidden_singles = ["filler"]
+        while len(sole_candidates) > 0:
             self.update_possible_values()
-            result = self.set_sole_candidates()
-            pass
+            sole_candidates = self.set_sole_candidates()
+            sole_candidate_iterations += 1
+            logging.info("Iteration: {0} of sole_candidates".format(sole_candidate_iterations))
+
+        hidden_singles_iterations = 0
+        while len(hidden_singles) > 0:
+            self.update_possible_values()
+            hidden_singles = self.set_hidden_singles()
+            hidden_singles_iterations += 1
+            logging.info("Iteration: {0} of hidden_singles".format(hidden_singles_iterations))
 
     def update_possible_values(self):
         """
@@ -170,10 +205,19 @@ class Board:
             for cell in row:
                 if cell == 0:
                     cell.possible_values = (
-                        set(self.row[cell.row].missing_values) - set(self.column[cell.column].found_values) - set(
-                            self.box[cell.box].found_values))
+                            set(self.row[cell.row].missing_values) -
+                            set(self.column[cell.column].found_values) -
+                            set(self.box[cell.box].found_values))
 
-    def __print__(self, colorized=True):
+    def __print__(self, colorized=False):
+        """
+
+        :type colorized: bool
+        :param colorized: Whether or not to colorize the output text
+        """
+
         for row in self.row:
-            print(row)
+            row.__print__(colorized=colorized)
+
+        print(str(self.percent_complete) + '% complete')
 # TODO: scrape http://www.dailysudoku.com/

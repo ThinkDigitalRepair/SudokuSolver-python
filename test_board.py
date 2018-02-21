@@ -6,7 +6,7 @@ from cell import Cell
 
 class TestBoard(TestCase):
     def setUp(self):
-        self.board = Board("Medium1.set")
+        self.board = Board("VeryHard1.set")
 
     def test_box(self):
         pass
@@ -24,12 +24,11 @@ class TestBoard(TestCase):
     def test_ordered_by_completeness(self):
         a = self.board.ordered_by_completeness
 
-    def test_solve(self):
-        self.board.solve()
-        self.board.__print__()
-        pass
-
     def test_percent_complete(self):
         board_completeness = self.board.percent_complete
-        print("board completeness: " + str(board_completeness) + '%')
-        self.board.__print__()
+
+    def test_solve(self):
+        self.board.solve()
+        self.board.__print__(colorized=False)
+        pass
+

@@ -21,10 +21,10 @@ class TestRow(TestCase):
         pass
 
     def test_updating_row_values(self):
-        self.row.set_cell(1, 1)
+        self.row.set_cell(1, 1, "test_row.test_updating_row_values()")
         pass
 
     def test_percent_complete(self):
         completeness = self.row.percent_complete
         print(str(completeness * 100) + "% complete")
-        print(self.row.__str__())
+        self.row.__print__()
